@@ -1,0 +1,6 @@
+bs4
+pandas
+sqlalchemy
+unrar
+psycopg2-binary
+lxml
