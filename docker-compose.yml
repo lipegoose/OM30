@@ -31,18 +31,17 @@ services:
       - db
 
   db:
-    image: mariadb:10.2.44
-    container_name: om30-mysql
+    image: postgres:13
+    container_name: om30-postgres
     restart: always
     ports:
-      - 3306:3306
+      - 5432:5432
     environment:
-      - MYSQL_DATABASE=om30
-      - MYSQL_USER=root
-      - MYSQL_ROOT_PASSWORD=root
+      - POSTGRES_DB=om30
+      - POSTGRES_USER=root
+      - POSTGRES_PASSWORD=root
     volumes:
-      - ./mysql-data:/var/lib/mysql
-      - ./mysql/init:/docker-entrypoint-initdb.d
+      - ./postgres-data:/var/lib/postgresql/data
 
   adminer:
     image: adminer
