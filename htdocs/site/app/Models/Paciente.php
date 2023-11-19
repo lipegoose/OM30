@@ -43,4 +43,36 @@ class Paciente extends Model
 		'cns',
 		'foto'
 	];
+
+    /* Colunas habilitadas na busca via Ajax */
+    protected static  $searchableColumns = [
+        'id',
+        'nome_paciente',
+        'mae_paciente',
+    ];
+
+    /* Colunas habilitadas para ordenação via Ajax */
+    protected static  $orderableColumns = [
+        // 0 => 'id',
+        1 => 'id',
+        3 => 'nome_paciente',
+        4 => 'mae_paciente',
+    ];
+
+    public static function getAllAjax($limit = 10, $page = 1, $search = '', $order, $filtro = null)
+    {
+        $list = Paciente::query();
+
+        if(!empty( $search )){
+            $searchableColumns = self::$searchableColumns;
+            $list->where(function ($list) use ($searchableColumns, $search) {
+                foreach($searchableColumns as $key => $column)
+                    $list->orWhere($column, 'ILIKE', '%' . $search . '%');
+            });
+        }
+        
+        $list->orderBy( self::$orderableColumns[ $order[0]['column'] ] , $order[0]['dir']);
+        
+        return $list->paginate($limit, ['*'], 'page', $page);
+    }
 }

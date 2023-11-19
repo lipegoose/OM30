@@ -1,7 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\RegistrosController;
+use App\Http\Controllers\PacientesController;
 
 
 /*
@@ -15,8 +15,9 @@ use App\Http\Controllers\RegistrosController;
 |
 */
 
-Route::get('/', function(){return redirect('registros');});
+Route::get('/', function(){return redirect('pacientes');});
 
-Route::resource('registros', RegistrosController::class);
+Route::get('pacientes/table_data', [PacientesController::class, 'tableData']);
+Route::resource('pacientes', PacientesController::class);
 
-Route::post('consulta_cep', [RegistrosController::class, 'consultaCep'])->name('consulta_cep');
+Route::post('consulta_cep', [PacientesController::class, 'consultaCep'])->name('consulta_cep');

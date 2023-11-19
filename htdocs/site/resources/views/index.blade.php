@@ -14,56 +14,45 @@
 </head>
 <body>
     <div id="app" class="container mt-5">
-        <h1>Lista de Registros</h1>
+        <h1>Lista de Pacientes</h1>
 
         <!-- Botões -->
         <div class="mb-3 d-flex justify-content-end">
             <button type="button" class="btn btn-sm btn-danger btn_excluir_massa"><i class="fa fa-trash"></i> Excluir em Massa</button>
-            <button class="btn btn-success ms-auto" data-toggle="modal" data-target="#novoRegistroModal">Novo Registro</button>
+            <button class="btn btn-success ms-auto" data-toggle="modal" data-target="#novoPacienteModal">Novo Paciente</button>
         </div>
 
         <form id="form_excluir_massa">
             @csrf
             <!-- Tabela com DataTables -->
-            <table class="table table-striped" id="registrosTable" style="width:100%">
+            <table class="table table-striped" id="pacientesTable" style="width:100%">
                 <thead>
                     <tr>
                         <th class="no-sort" style="width: 10px;"><span><input name="check_todos" type="checkbox" class="ml-2" id="check_todos" style="cursor: pointer;" /> </span></th>
                         <th class="text-center" style="width: 20px;">ID</th>
-                        <th>Registro</th>
                         <th class="text-center" style="width: 130px;">Ações</th>
+                        <th>Paciente</th>
+                        <th>Mãe</th>
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach ($registros as $key => $registro)
-                        <tr>
-                            <td><input type="checkbox" name="check_rep[]" value="{{$key}}" /></td>
-                            <td>{{ $key + 1 }}</td>
-                            <td>{{ $registro }}</td>
-                            <td>
-                                <a data-toggle="tooltip" title="Visualizar" class="btn btn-primary btn-sm" href="{{ route('registros.show', ['registro' => $key + 1]) }}"><i class="fa fa-eye"></i></a>
-                                <a data-toggle="tooltip" title="Editar" class="btn btn-warning btn-sm" href="{{ route('registros.edit', ['registro' => $key + 1]) }}"><i class="fa fa-edit"></i></a>
-                                <a data-toggle="tooltip" title="Excluir" class="btn btn-danger btn-sm" onclick="excluirRegistro({{ $key + 1 }})"><i class="fa fa-trash"></i></a>
-                            </td>
-                        </tr>
-                    @endforeach
                 </tbody>
             </table>
         </form>
     </div>
 
-    <!-- Modal para Novo Registro -->
-    <div class="modal fade" id="novoRegistroModal" tabindex="-1" role="dialog" aria-labelledby="novoRegistroModalLabel" aria-hidden="true">
+    <!-- Modal para Novo Paciente -->
+    <div class="modal fade" id="novoPacienteModal" tabindex="-1" role="dialog" aria-labelledby="novoPacienteModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="novoRegistroModalLabel">Novo Registro</h5>
+                    <h5 class="modal-title" id="novoPacienteModalLabel">Novo Paciente</h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Fechar">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
                 <div class="modal-body">
-                    <form action="#" method="post" enctype="multipart/form-data">
+                    <form action="#" method="post" enctype="multipart/form-data" id="formModalPaciente">
                         @csrf
                         <!-- Foto do Paciente -->
                         <div class="form-group">
@@ -138,12 +127,13 @@
                             </div>
                         </div>
 
-                        <button type="submit" class="btn btn-primary">Cadastrar</button>
+                        <button type="button" class="btn btn-primary" id="submitModalPaciente">Cadastrar</button>
                     </form>                        
                 </div>
             </div>
         </div>
     </div>
+    @include('elements.loading')
 
     <!-- Adicionando jQuery, DataTables, Bootstrap JS e SweetAlert2 -->
     <script src="https://code.jquery.com/jquery-3.7.0.js"></script>
@@ -158,17 +148,42 @@
         $(document).ready(function () {
             $('[data-toggle="tooltip"]').tooltip();
 
-            $('#registrosTable').DataTable({
+            table = $('#pacientesTable').DataTable({
+                "processing": true,
+                serverSide: true,
+                autoWidth: false,
+                ajax: {
+                    url: "pacientes/table_data",
+                    type: "GET",
+                    data: function(d) {
+                        // console.log(d)
+                    },
+                    error: function (xhr, error, code) {
+                        Swal.fire({
+                            title: "Erro interno",
+                            text: "Ops, ocorreu um erro. Nossa equipe de engenheiros já está trabalhando para corrigir o problema!",
+                            icon: "error",
+                            confirmButtonText: "Ok!",
+                            buttonsStyling: true
+                        });
+                    }
+                },
+                columns: [
+                    {"data": "btn_check",  class: 'cod text-center', orderable: false},
+                    {"data": "id",  class: 'cod text-center'},
+                    {"data": "buttons", orderable: false, class: 'align-items-center justify-content-center text-center ws_nwrap',
+                        "render": function(data){
+                            return '<div class="btn-group align-items-center justify-content-center"> '+data+'</div>';
+                        }
+                    },
+                    {"data": "nome_paciente", class: 'ws_nwrap'},
+                    {"data": "mae_paciente", class: 'ws_nwrap'}
+                ],
+                order: [[1, 'desc']],
+                "pageLength": 10,
                 "language": {
                     "url": "https://cdn.datatables.net/plug-ins/1.10.25/i18n/Portuguese-Brasil.json"
-                },
-                "columnDefs": [{
-                    "targets": [0, -1],  // Primeira e Última coluna
-                    "orderable": false // Tornar a coluna não ordenável
-                }],
-                "order": [
-                    [1, "desc"]  // Ordenar a segunda coluna (ID) de forma decrescente
-                ]
+                }
             });
         });
 
@@ -182,7 +197,7 @@
             }
         })
 
-        $("#registrosTable").on("change", '[name="check_rep[]"]', function () {
+        $("#pacientesTable").on("change", '[name="check_rep[]"]', function () {
             var _checked = $(this).prop('checked');
             if (!_checked)
                 $('#check_todos').prop("checked", false)
@@ -192,7 +207,7 @@
             let _this = $(this);
             Swal.fire({
                 title: "ATENÇÃO",
-                text: "Tem certeza que quer deletar estes Registros em massa? Esta ação não terá volta.",
+                text: "Tem certeza que quer deletar estes Pacientes em massa? Esta ação não terá volta.",
                 icon: "warning",
                 showCancelButton: true,
                 confirmButtonColor: "#3085d6",
@@ -209,7 +224,7 @@
                         value: 'DELETE'
                     });
                     $.ajax({
-                        url: "{{ URL('funcionarios/destroy_massa') }}",
+                        url: "{{ URL('pacientes') }}/delete",
                         type: 'POST',
                         dataType: 'json',
                         data: dados,
@@ -220,16 +235,85 @@
                             if (data.flash_error){
                                 Swal.fire({
                                     text: data.flash_error,
-                                    type: "info",
+                                    icon: "info",
                                     confirmButtonColor: "#3085d6",
                                     cancelButtonColor: "#d33",
                                     confirmButtonText: "Entendi!",
-                                    confirmButtonClass: "btn btn-success",
-                                    cancelButtonClass: "btn btn-danger ml-1",
                                     buttonsStyling: true
                                 });                        
                             }
-                            window.location.href="{{ URL('funcionarios') }}";
+                            $("#myLoading").modal('hide');
+                            table.draw();
+                        },
+                        error: function(data) {
+                            console.log(data.responseJSON)
+                        }
+                    });
+                }
+            });
+        });
+
+        $("#pacientesTable").on("click", ".btn_destroy", function() {
+            let _this = $(this);
+            Swal.fire({
+                title: "ATENÇÃO",
+                text: "Tem certeza que quer deletar este Paciente? Esta ação não terá volta.",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#3085d6",
+                cancelButtonColor: "#d33",
+                confirmButtonText: "Sim",
+                cancelButtonText: "Não",
+                buttonsStyling: true
+            }).then(function(result) {
+                if(result.value) {
+                    $("#myLoading").modal();
+                    dados = [];
+                    dados.push({
+                        name: 'check_rep[]',
+                        value: _this.attr('id-paciente')
+                    });
+                    dados.push({
+                        name: '_token',
+                        value: $('[name=\"_token\"]').val()
+                    });
+                    dados.push({
+                        name: '_method',
+                        value: 'DELETE'
+                    });
+                    $.ajax({
+                        url: "{{ URL('pacientes') }}/delete",
+                        type: 'POST',
+                        dataType: 'json',
+                        data: dados,
+                        complete: function(data) {
+                            data = data.responseJSON;
+                        },
+                        success: function(data) {
+                            $("#myLoading").modal('hide');
+                            if(data == true){
+                                Swal.fire({
+                                    text: "Paciente excluído com sucesso!",
+                                    icon: "success",
+                                    confirmButtonColor: "#3085d6",
+                                    cancelButtonColor: "#d33",
+                                    confirmButtonText: "Entendi!",
+                                    buttonsStyling: true
+                                }).then(function(result) {
+                                    table.draw();
+                                });
+                            }else{
+                                $("#myLoading").modal('hide');
+                                Swal.fire({
+                                    text: data,
+                                    icon: "info",
+                                    confirmButtonColor: "#3085d6",
+                                    cancelButtonColor: "#d33",
+                                    confirmButtonText: "Entendi!",
+                                    buttonsStyling: true
+                                });
+                            }
+
                         },
                         error: function(data) {
                             console.log(data.responseJSON)
@@ -359,6 +443,34 @@
               icon: "error"
             });
             $('#cns').focus();
+        }
+
+        $('#formModalPaciente').on('click', "#submitModalPaciente", function(){
+            dados = $(this).closest('form').serializeArray(); // Dados do Formulário atual.
+            $.ajax({
+                url: "{{URL('pacientes')}}",
+                type: 'POST',
+                dataType: 'json',
+                data: dados,
+                complete: function(data) {
+                    data = data.responseJSON;
+                    // console.log(data);
+                },
+                success: function(data) {
+                    reset_form_add_paciente();
+                    table.draw();
+                },
+                error: function(data) {
+                    console.log(data.responseJSON)
+                }
+            });
+        });
+
+        function reset_form_add_paciente() {
+            $('#formModalPaciente').each(function() {
+                this.reset();
+            }); // limpa os inputs
+            $("#novoPacienteModal").modal('hide');
         }
     </script>
 
