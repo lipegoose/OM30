@@ -56,7 +56,7 @@
                 <!-- CPF -->
                 <div class="form-group col-md-3" style="float:left;">
                     <label for="cpf">CPF:*</label>
-                    <input type="text" class="form-control" id="cpf" name="cpf" placeholder="000.000.000-00" value="{{$paciente->cpf}}" required > <!-- pattern="\d{3}\.\d{3}\.\d{3}-\d{2}" -->
+                    <input type="text" class="form-control" id="cpf" name="cpf" placeholder="000.000.000-00" value="{{$paciente->cpf}}" required pattern="\d{3}\.\d{3}\.\d{3}-\d{2}" >
                 </div>
 
                 <!-- CNS -->
