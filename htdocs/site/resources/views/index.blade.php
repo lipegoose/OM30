@@ -246,8 +246,8 @@
                             $("#myLoading").modal('hide');
                             table.draw();
                         },
-                        error: function(data) {
-                            console.log(data.responseJSON)
+                        error: function(jqXHR, textStatus, errorThrown) {
+                            console.error('Erro na requisição:', textStatus, errorThrown);
                         }
                     });
                 }
@@ -316,8 +316,8 @@
                             }
 
                         },
-                        error: function(data) {
-                            console.log(data.responseJSON)
+                        error: function(jqXHR, textStatus, errorThrown) {
+                            console.error('Erro na requisição:', textStatus, errorThrown);
                         }
                     });
                 }
@@ -339,7 +339,7 @@
         });
 
         $("#pacientesTable").on("click", ".btn_view", function() {
-            $('#acaoModal').html('Ver');
+            $('#acaoModal').html('Visualizar');
             $('#submitModalPaciente').hide();
             $("#novoPacienteModal").modal();
             populaFormPaciente($(this).attr('id-paciente'));
@@ -373,8 +373,8 @@
                     $('#cidade').val(data.localidade);
                     $('#numero').focus();
                 },
-                error: function(data) {
-                    console.log(data.errors);
+                error: function(jqXHR, textStatus, errorThrown) {
+                    console.error('Erro na requisição:', textStatus, errorThrown);
                 }
             });
         });
@@ -387,6 +387,37 @@
                 validaCns(_val);
             else
                 msgCnsInvalido();
+        });
+
+        $('#formModalPaciente').on('click', "#submitModalPaciente", function(){
+            dados = $(this).closest('form').serializeArray(); // Dados do Formulário atual.
+            pacienteId = $('#id_paciente').val();
+            if (!pacienteId) {
+                url = "{{URL('pacientes')}}";
+                type = 'POST';
+            }
+            else{
+                url = "{{ route('pacientes.update', ['paciente' => '__pacienteId__']) }}".replace('__pacienteId__', pacienteId);
+                type = 'PUT';                
+            }
+            $.ajax({
+                url: url,
+                type: type,
+                dataType: 'json',
+                data: dados,
+                complete: function(data) {
+                    data = data.responseJSON;
+                    // console.log(data);
+                },
+                success: function(data) {
+                    reset_form_add_paciente();
+                    table.draw();
+                    $("#novoPacienteModal").modal('hide');
+                },
+                error: function(jqXHR, textStatus, errorThrown) {
+                    console.error('Erro na requisição:', textStatus, errorThrown);
+                }
+            });
         });
 
         function validaCns(cns){
@@ -467,28 +498,6 @@
             $('#cns').focus();
         }
 
-        $('#formModalPaciente').on('click', "#submitModalPaciente", function(){
-            dados = $(this).closest('form').serializeArray(); // Dados do Formulário atual.
-            $.ajax({
-                url: "{{URL('pacientes')}}",
-                type: 'POST',
-                dataType: 'json',
-                data: dados,
-                complete: function(data) {
-                    data = data.responseJSON;
-                    // console.log(data);
-                },
-                success: function(data) {
-                    reset_form_add_paciente();
-                    table.draw();
-                    $("#novoPacienteModal").modal('hide');
-                },
-                error: function(data) {
-                    console.log(data.responseJSON)
-                }
-            });
-        });
-
         function populaFormPaciente(pacienteId){
             reset_form_add_paciente();
             $.ajax({
@@ -501,7 +510,6 @@
                     $('#dataNascimento').val(data.data_nascimento);
                     $('#cns').val(data.cns);
                     $('#cpf').val(data.cpf);
-                    console.log('Dados do paciente:', data);
                 },
                 error: function(jqXHR, textStatus, errorThrown) {
                     console.error('Erro na requisição:', textStatus, errorThrown);

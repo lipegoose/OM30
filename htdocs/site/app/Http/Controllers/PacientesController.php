@@ -139,7 +139,28 @@ class PacientesController extends Controller
      */
     public function update(Request $request, $id)
     {
-        //
+        try {
+
+            $store = $request->all();
+
+            DB::beginTransaction();
+
+            $paciente = Paciente::find($id);
+            $paciente->nome_paciente = $store['nome'];
+            $paciente->mae_paciente = $store['nomeMae'];
+            $paciente->data_nasc = $store['dataNascimento'];
+            $paciente->cpf = $store['cpf'];
+            $paciente->cns = $store['cns'];
+            // $paciente->foto = $store['foto'];
+            $paciente->save();
+
+            DB::commit();
+
+        } catch (Exception $e) {
+            DB::rollback();
+        }
+
+        return response()->json(true);
     }
 
     /**
