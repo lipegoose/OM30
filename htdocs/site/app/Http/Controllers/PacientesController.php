@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use App\Imports\PacientesImport;
+use Maatwebsite\Excel\Facades\Excel;
 
 use DB;
 use Redirect;
@@ -303,41 +305,21 @@ class PacientesController extends Controller
 
     public function importar(Request $request)
     {
+        $this->validate($request, [
+            'ARQ' => 'required|mimes:csv,txt|max:10240', // Limite de 10MB
+        ]);
+
         try {
-            $store = $request->all();
+            $file = $request->file('ARQ');
 
-            // # Verifica o tamanho do arquivo baixo de 10 MB
-            if(isset($request->ARQ) && $request->ARQ->getClientSize() <= (10 * (1024 * 1024)) && in_array($request->ARQ->getClientOriginalExtension(), ['csv','xls','xlsx']))
-            {
-                $res['status']   = 'ok';
-                $res['qt_ok']    = 0;
-                $res['qt_erros'] = 0;
+            // Processamento em fila
+            Excel::queueImport(new PacientesImport, $file);
+            // Excel::import(new PacientesImport, $file);
 
-                $arq_nome        = time().'.'.$extension;
-                $arq_s_path      = public_path('arqs/pacientes');
-                $arq_s_path_nome = public_path('arqs/pacientes/'.$arq_nome);
-                $request->ARQ->move($arq_s_path, $arq_nome);
-
-                $fgc             = file_get_contents($arq_s_path_nome);
-                if($extension == 'csv'){
-                    $fgc         = @iconv('Windows-1252', 'UTF-8//TRANSLIT//IGNORE', $fgc); // Fix*
-                }
-                file_put_contents($arq_s_path_nome, $fgc);
-
-                $Excel      = new FastExcel;
-
-                if($extension == 'csv') {
-                    $Excel_Col = $Excel->configureCsv($delimiter = ';', $enclosure = '"', $eol = "\n", $encoding = 'UTF-8', $bom = false)->import($arq_s_path_nome);
-                }else {
-                    $Excel_Col = $Excel->import($arq_s_path_nome);
-                }
-
-            }
-
-        } catch (Exception $e) {
-            return response()->json(['flash_error' => 'Erro ao processar a solicitação.']);
+            return response()->json(['status' => 'A importação foi iniciada e será processada em segundo plano.']);
+            // return redirect()->back()->with('status', 'A importação foi iniciada e será processada em segundo plano.');
+        } catch (\Exception $e) {
+            return response()->json(['status' => 'erro', 'mensagem' => $e->getMessage()]);
         }
-
-        return response()->json(true);
     }
 }

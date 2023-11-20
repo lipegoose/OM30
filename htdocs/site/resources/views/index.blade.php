@@ -19,15 +19,11 @@
         <div class="card-header pt-0 pb-0">
             <div class="row">
                 <div class="col-md-6 text-right">
-                    <button id="BT_ARQ_IMPORTAR" type="button" class="btn btn-sm btn-success">
-                        <span class="txt"><i class="fa fa-file-excel-o"></i>&nbsp;&nbsp;Importar Pacientes</span>
-                        <span class="preload">Processando...</span>
-                    </button>
-                    <form id="FORM_ARQ_IMPORTAR" action="#" method="post" enctype="multipart/form-data">
-                        <input type="hidden" name="_token" value="{{ csrf_token() }}" />
+                    <form id="FORM_ARQ_IMPORTAR" action="{{ route('pacientes.importar') }}" method="post" enctype="multipart/form-data">
+                        @csrf
+                        <label>Importar Pacientes via CSV:</label>
                         <input id="IN_ARQ_IMPORTAR" name="ARQ" type="file" class="display-hidden">
                     </form>
-                    <p class="font-italic font-small-2 mb-0">arquivo permitido <strong>.CSV</strong>, <strong>.XLS</strong>, <strong>.XLSX</strong>, tamanho máximo <strong>10MB</strong></p>
                     <p id="MSG_ARQ_IMPORTAR" class="display-hidden danger font-small-3 mb-0"></p>
                 </div>
 
@@ -215,62 +211,35 @@
 
             // Aplicando máscara de CEP
             $('#cep').mask('00000-000');
-        });
 
-        var BT_ARQ_IMPORTAR = $("#BT_ARQ_IMPORTAR");
-        var IN_ARQ_IMPORTAR = $("#IN_ARQ_IMPORTAR");
-        var MSG_ARQ_IMPORTAR = $("#MSG_ARQ_IMPORTAR");
-
-        BT_ARQ_IMPORTAR.on("click", function () {
-            if (BT_ARQ_IMPORTAR.hasClass('processando')) { return false; }
-            IN_ARQ_IMPORTAR.trigger("click");
-        });
-
-        IN_ARQ_IMPORTAR.on("change", function () {
-            var formData = new FormData();
-            formData.append('ARQ', IN_ARQ_IMPORTAR[0].files[0]);
-
-            $.ajax({
-                url: "{{ URL('pacientes/importar') }}",
-                type: "POST",
-                data: formData,
-                contentType: false,
-                processData: false,
-                beforeSend: function () {
-                    $("#myLoading").modal();
-                },
-            }).done(function (data) {
-                try {
-                    $("#myLoading").modal('toggle');
-                    var _json = $.parseJSON(data);
-                    var message = '';
-
-                    if (_json.status === 'ok') {
-                        message = _json.qt_ok + ' funcionário(s) importado(s) com sucesso.';
-                    } else if (_json.status === 'erro_arq_invalido') {
-                        message = 'arquivo inválido baixe o modelo!';
-                    } else if (_json.status === 'erro_extensao') {
-                        message = 'extensão do arquivo inválido!';
-                    } else {
-                        message = 'ocorreu um erro, tente novamente!';
-                    }
-
-                    MSG_ARQ_IMPORTAR.removeClass('display-hidden').addClass(_json.status === 'ok' ? 'success' : 'danger').html(message);
-
-                    if (_json.status === 'ok' && _json.qt_erros === 0) {
-                        table.draw();
-                    }
-                } catch (e) {
-                    console.error('Erro ao processar resposta: ', e);
-                    MSG_ARQ_IMPORTAR.removeClass('display-hidden').addClass('danger').html('ocorreu um erro, tente novamente, contacte o suporte!');
-                } finally {
-                    BT_ARQ_IMPORTAR.removeClass('processando');
-                    IN_ARQ_IMPORTAR.val('');
+            // Ao selecionar um arquivo
+            $('#IN_ARQ_IMPORTAR').change(function () {
+                // Certifique-se de que um arquivo foi selecionado
+                if ($(this).val() !== "") {
+                    // Submeta o formulário via AJAX
+                    $.ajax({
+                        url: $('#FORM_ARQ_IMPORTAR').attr('action'),
+                        type: 'POST',
+                        data: new FormData($('#FORM_ARQ_IMPORTAR')[0]),
+                        processData: false,
+                        contentType: false,
+                        success: function (response) {
+                            console.log(response);
+                            Swal.fire({
+                                text: response.status,
+                                icon: "info",
+                                confirmButtonColor: "#3085d6",
+                                cancelButtonColor: "#d33",
+                                confirmButtonText: "Entendi!",
+                                buttonsStyling: true
+                            });                        
+                        },
+                        error: function (error) {
+                            console.error(error);
+                            // Lidar com erros, se houver
+                        }
+                    });
                 }
-            }).fail(function () {
-                BT_ARQ_IMPORTAR.removeClass('processando');
-                IN_ARQ_IMPORTAR.val('');
-                console.error('Erro na requisição Ajax.');
             });
         });
 
