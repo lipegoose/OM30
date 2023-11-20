@@ -56,9 +56,9 @@
                         @csrf
                         <input type="hidden" name="id_paciente" id="id_paciente">
                         <!-- Foto do Paciente -->
-                        <div class="form-group">
+                        <div class="form-group" id="foto_paciente">
                             <label for="foto">Foto do Paciente:</label>
-                            <input type="file" class="form-control" id="foto" name="foto">
+                            <img src="" id="foto" style="max-height: 100px;">
                         </div>
 
                         <!-- Nome Completo do Paciente -->
@@ -327,7 +327,7 @@
         $("#app").on("click", ".btn_new", function() {
             $('#acaoModal').html('Novo');
             $('#submitModalPaciente').show();
-            reset_form_add_paciente();
+            resetFormAddPaciente();
         });
 
         $("#pacientesTable").on("click", ".btn_edit", function() {
@@ -415,7 +415,7 @@
                     // console.log(data);
                 },
                 success: function(data) {
-                    reset_form_add_paciente();
+                    resetFormAddPaciente();
                     table.draw();
                     $("#novoPacienteModal").modal('hide');
                 },
@@ -504,17 +504,21 @@
         }
 
         function populaFormPaciente(pacienteId){
-            reset_form_add_paciente();
+            resetFormAddPaciente();
             $.ajax({
                 url: "{{ route('pacientes.show', ['paciente' => '__pacienteId__']) }}".replace('__pacienteId__', pacienteId),
                 type: 'GET',
                 dataType: 'json',
                 success: function(data) {
+                    if (data.foto){
+                        $('#foto_paciente').show();
+                        $('#foto').attr('src', '/imgs/pacientes/'+data.foto);
+                    }
                     $('#nome').val(data.nome_paciente);
                     $('#nomeMae').val(data.mae_paciente);
                     $('#dataNascimento').val(data.data_nascimento);
                     $('#cns').val(data.cns);
-                    $('#cpf').val(data.endereco.cpf);
+                    $('#cpf').val(data.cpf);
                     $('#cep').val(data.endereco.cep);
                     $('#estado').val(data.endereco.estado);
                     $('#cidade').val(data.endereco.cidade);
@@ -529,8 +533,10 @@
             });
         }
 
-        function reset_form_add_paciente() {
+        function resetFormAddPaciente() {
             $('#id_paciente').val('');
+            $('#foto_paciente').hide();
+            $('#foto').attr('src', '');
             $('#formModalPaciente').each(function() {
                 this.reset();
             }); // limpa os inputs

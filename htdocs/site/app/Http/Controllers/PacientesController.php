@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 
 use DB;
+use Redirect;
 
 use App\Models\Endereco;
 use App\Models\Paciente;
@@ -20,8 +21,7 @@ class PacientesController extends Controller
      */
     public function index()
     {
-        $pacientes = ['Registro 1', 'Registro 2', 'Registro 3', 'Registro 4', 123458 => 'Registro 5'];
-        return view('index', ['pacientes' => $pacientes]);
+        return view('index');
     }
 
 
@@ -50,9 +50,12 @@ class PacientesController extends Controller
                             "<button type='button' data-toggle='tooltip' title='Visualizar' class='btn btn-sm btn-icon btn-primary btn_view' id-paciente='$linha->id'>
                                         <i class='fa fa-eye'></i>
                                     </button>" .
-                            "<button type='button' data-toggle='tooltip' title='Editar' class='btn btn-sm btn-icon btn-warning btn_edit' id-paciente='$linha->id'>
+                            "<button type='button' data-toggle='tooltip' title='Editar Rápido' class='btn btn-sm btn-icon btn-warning btn_edit' id-paciente='$linha->id'>
                                         <i class='fa fa-edit'></i>
                                     </button>" .
+                            "<a href='pacientes/$linha->id/edit' data-toggle='tooltip' title='Editar Completo' class='btn btn-sm btn-icon btn-success' id-paciente='$linha->id'>
+                                        <i class='fa fa-file-pen'></i>
+                                    </a>" .
                             "<button type='button' data-toggle='tooltip' title='Deletar' class='btn btn-sm btn-icon btn-danger btn_destroy' id-paciente='$linha->id'>
                                         <i class='fa fa-trash'></i>
                                     </button>";
@@ -108,7 +111,15 @@ class PacientesController extends Controller
             $paciente->data_nasc = $store['dataNascimento'];
             $paciente->cpf = $store['cpf'];
             $paciente->cns = $store['cns'];
-            // $paciente->foto = $store['foto'];
+
+            // Verifica se uma imagem foi enviada
+            if ($request->hasFile('foto')) {
+                $foto = $request->file('foto');
+                $fotoNome = time() . '_' . $foto->getClientOriginalName(); // Nome único para a imagem
+                $foto->storeAs('imgs/pacientes', $fotoNome, 'public'); // Salva a imagem na pasta
+                $paciente->foto = $fotoNome; // Salva o nome da imagem no BD
+            }
+
             $paciente->save();
 
             $endereco = new Endereco();
@@ -141,6 +152,18 @@ class PacientesController extends Controller
     {
         $paciente = Paciente::getById($id);
         return response()->json($paciente);
+    }
+
+    /**
+     * Show the form for editing the specified resource.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function edit($id)
+    {
+        $paciente = Paciente::getById($id);
+        return view('edit', ['paciente' => $paciente]);
     }
 
     /**
@@ -187,6 +210,14 @@ class PacientesController extends Controller
                 'numero' => $request->input('numero'),
                 'complemento' => $request->input('complemento')
             ]);
+            // Verifica se uma imagem foi enviada
+            if ($request->hasFile('foto')) {
+                $fotoNome = 'paciente_'.$id.".".strtolower($request->file('foto')->getClientOriginalExtension());
+                $request->file('foto')->move(public_path('imgs/pacientes'), $fotoNome);
+                $paciente = Paciente::find($id);
+                $paciente->foto = $fotoNome; // Salva o nome da imagem no BD
+                $paciente->save();
+            }
 
             DB::commit();
 
@@ -195,7 +226,10 @@ class PacientesController extends Controller
             return response()->json(['error' => $e->getMessage()], 500);
         }
 
-        return response()->json(true);
+        if (empty($request->input('id_paciente')))
+            return Redirect::to('/pacientes');
+        else
+            return response()->json(true);
     }
 
     /**
