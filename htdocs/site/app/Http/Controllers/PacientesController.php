@@ -274,13 +274,11 @@ class PacientesController extends Controller
     public function consultaCep(Request $request)
     {
         $store = $request->all();
-
         $CURL = curl_init();
-        curl_setopt($CURL, CURLOPT_URL, ENV("PLUG_CEP").$store['cep'].'/json/');
+        curl_setopt($CURL, CURLOPT_URL, config("app.plug_cep_url").$store['cep'].'/json/');
         curl_setopt($CURL, CURLOPT_ENCODING, 'UTF-8');
         curl_setopt($CURL, CURLOPT_HTTPHEADER, array(
-            'Content-Type: application/json; charset=UTF-8',
-            'x-api-key: '. ENV("PLUG_KEY")
+            'Content-Type: application/json; charset=UTF-8'
         ));
         curl_setopt($CURL, CURLOPT_POST, false);
         curl_setopt($CURL, CURLOPT_CONNECTTIMEOUT, 10);

@@ -233,4 +233,5 @@ return [
 
     ],
 
+    'plug_cep_url' => env('PLUG_CEP', 'https://viacep.com.br/ws/'),
 ];
