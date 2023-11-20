@@ -5,9 +5,11 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 
+use DB;
+
+use App\Models\Endereco;
 use App\Models\Paciente;
 
-use DB;
 
 class PacientesController extends Controller
 {
@@ -109,6 +111,17 @@ class PacientesController extends Controller
             // $paciente->foto = $store['foto'];
             $paciente->save();
 
+            $endereco = new Endereco();
+            $endereco->id_paciente = $paciente->id;
+            $endereco->cep = $store['cep'];
+            $endereco->estado = $store['estado'];
+            $endereco->cidade = $store['cidade'];
+            $endereco->bairro = $store['bairro'];
+            $endereco->endereco = $store['endereco'];
+            $endereco->numero = $store['numero'];
+            $endereco->complemento = $store['complemento'];
+            $endereco->save();
+
             DB::commit();
 
         } catch (Exception $e) {
@@ -140,24 +153,46 @@ class PacientesController extends Controller
     public function update(Request $request, $id)
     {
         try {
-
-            $store = $request->all();
+            $request->validate([
+                'nome' => 'required',
+                'nomeMae' => 'required',
+                'dataNascimento' => 'required|date',
+                'cpf' => 'required',
+                'cns' => 'required',
+                'cep' => 'required',
+                'estado' => 'required',
+                'cidade' => 'required',
+                'bairro' => 'required',
+                'endereco' => 'required',
+                'numero' => 'required'
+            ]);
 
             DB::beginTransaction();
 
             $paciente = Paciente::find($id);
-            $paciente->nome_paciente = $store['nome'];
-            $paciente->mae_paciente = $store['nomeMae'];
-            $paciente->data_nasc = $store['dataNascimento'];
-            $paciente->cpf = $store['cpf'];
-            $paciente->cns = $store['cns'];
-            // $paciente->foto = $store['foto'];
-            $paciente->save();
+            $paciente->update([
+                'nome_paciente' => $request->input('nome'),
+                'mae_paciente' => $request->input('nomeMae'),
+                'data_nasc' => $request->input('dataNascimento'),
+                'cpf' => $request->input('cpf'),
+                'cns' => $request->input('cns')
+            ]);
+
+            $paciente->endereco->update([
+                'cep' => $request->input('cep'),
+                'estado' => $request->input('estado'),
+                'cidade' => $request->input('cidade'),
+                'bairro' => $request->input('bairro'),
+                'endereco' => $request->input('endereco'),
+                'numero' => $request->input('numero'),
+                'complemento' => $request->input('complemento')
+            ]);
 
             DB::commit();
 
         } catch (Exception $e) {
             DB::rollback();
+            return response()->json(['error' => $e->getMessage()], 500);
         }
 
         return response()->json(true);
@@ -174,23 +209,30 @@ class PacientesController extends Controller
         try {
             $store = $request->all();
 
-            if (isset($store['check_rep']) && is_array($store['check_rep']) && count($store['check_rep']) > 0)
-            foreach($store['check_rep'] AS $id){
-                if (!empty($id)) {
-                    DB::beginTransaction();
+            if (isset($store['check_rep']) && is_array($store['check_rep']) && count($store['check_rep']) > 0) {
+                DB::beginTransaction();
 
-                    $paciente               = Paciente::find($id);
+                try {
+                    Paciente::whereIn('id', $store['check_rep'])
+                        ->with('endereco')
+                        ->get()
+                        ->each(function ($paciente) {
+                            $paciente->endereco()->update(['deleted_at' => now()]);
+                        });
 
-                    $paciente->deleted_at   = date('Y-m-d H:i:s');
-                    $paciente->save();
+                    Paciente::whereIn('id', $store['check_rep'])
+                        ->update(['deleted_at' => now()]);
 
                     DB::commit();
+
+                } catch (Exception $e) {
+                    DB::rollback();
+                    return response()->json(['flash_error' => 'Erro ao excluir Pacientes! Entre em contato com o Suporte.']);
                 }
-            } // close foreach($store['check_rep'] AS $id)
+            }
 
         } catch (Exception $e) {
-            DB::rollback();
-            return response()->json(['flash_error' => 'Erro ao excluir Paciente! Entre em contato com o Suporte.']);
+            return response()->json(['flash_error' => 'Erro ao processar a solicitação.']);
         }
 
         return response()->json(true);

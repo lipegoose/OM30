@@ -7,6 +7,7 @@
 namespace App\Models;
 
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
@@ -25,6 +26,8 @@ use DB;
  * @property string|null $deleted_at
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
+ * 
+ * @property Collection|Endereco[] $enderecos
  *
  * @package App\Models
  */
@@ -61,6 +64,11 @@ class Paciente extends Model
         4 => 'mae_paciente',
     ];
 
+	public function endereco()
+	{
+		return $this->hasOne(Endereco::class, 'id_paciente');
+	}
+
     public static function getAllAjax($limit = 10, $page = 1, $search = '', $order, $filtro = null)
     {
         $list = Paciente::query();
@@ -80,7 +88,11 @@ class Paciente extends Model
 
     public static function getById($id)
     {
-    	$teste = Paciente::select('id', 'nome_paciente', 'mae_paciente', 'data_nasc', 'cpf', 'cns', 'foto',  DB::raw("TO_CHAR(data_nasc, 'YYYY-MM-DD') AS data_nascimento"))->where('id', $id)->first();
-    	return $teste;
+	    $paciente = Paciente::with('endereco')
+	        ->select('id', 'nome_paciente', 'mae_paciente', 'data_nasc', 'cpf', 'cns', 'foto', DB::raw("TO_CHAR(data_nasc, 'YYYY-MM-DD') AS data_nascimento"))
+	        ->where('id', $id)
+	        ->first();
+
+	    return $paciente;
     }
 }

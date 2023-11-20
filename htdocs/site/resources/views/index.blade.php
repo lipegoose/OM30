@@ -63,32 +63,32 @@
 
                         <!-- Nome Completo do Paciente -->
                         <div class="form-group">
-                            <label for="nome">Nome Completo do Paciente:</label>
+                            <label for="nome">Nome Completo do Paciente:*</label>
                             <input type="text" class="form-control" id="nome" name="nome" required>
                         </div>
 
                         <!-- Nome Completo da Mãe -->
                         <div class="form-group">
-                            <label for="nomeMae">Nome Completo da Mãe:</label>
+                            <label for="nomeMae">Nome Completo da Mãe:*</label>
                             <input type="text" class="form-control" id="nomeMae" name="nomeMae" required>
                         </div>
 
                         <div class="form-row">
                             <!-- Data de Nascimento -->
                             <div class="form-group col-md-3" style="float:left;">
-                                <label for="dataNascimento">Data de Nascimento:</label>
+                                <label for="dataNascimento">Data de Nascimento:*</label>
                                 <input type="date" class="form-control" id="dataNascimento" name="dataNascimento" required>
                             </div>
 
                             <!-- CPF -->
                             <div class="form-group col-md-3" style="float:left;">
-                                <label for="cpf">CPF:</label>
+                                <label for="cpf">CPF:*</label>
                                 <input type="text" class="form-control" id="cpf" name="cpf" placeholder="000.000.000-00" required pattern="\d{3}\.\d{3}\.\d{3}-\d{2}">
                             </div>
 
                             <!-- CNS -->
                             <div class="form-group col-md-6" style="float:left;">
-                                <label for="cns">CNS (Cartão Nacional de Saúde):</label>
+                                <label for="cns">CNS (Cartão Nacional de Saúde):*</label>
                                 <input type="text" class="form-control" id="cns" name="cns" required pattern="\d{15}">
                             </div>
                         </div>
@@ -96,30 +96,30 @@
                         <!-- Endereço Completo -->
                         <div class="form-row">
                             <div class="form-group col-md-2" style="float:left;">
-                                <label for="cep">CEP:</label>
+                                <label for="cep">CEP:*</label>
                                 <input type="text" class="form-control" id="cep" name="cep" required>
                             </div>
                             <div class="form-group col-md-1" style="float:left;">
-                                <label for="estado">UF:</label>
+                                <label for="estado">UF:*</label>
                                 <input type="text" class="form-control" id="estado" name="estado" required>
                             </div>
                             <div class="form-group col-md-5" style="float:left;">
-                                <label for="cidade">Cidade:</label>
+                                <label for="cidade">Cidade:*</label>
                                 <input type="text" class="form-control" id="cidade" name="cidade" required>
                             </div>
                             <div class="form-group col-md-4" style="float:left;">
-                                <label for="bairro">Bairro:</label>
+                                <label for="bairro">Bairro:*</label>
                                 <input type="text" class="form-control" id="bairro" name="bairro" required>
                             </div>
                         </div>
 
                         <div class="form-row">
                             <div class="form-group col-md-7" style="float:left;">
-                                <label for="endereco">Endereço:</label>
+                                <label for="endereco">Endereço:*</label>
                                 <input type="text" class="form-control" id="endereco" name="endereco" required>
                             </div>
                             <div class="form-group col-md-2" style="float:left;">
-                                <label for="numero">Nº:</label>
+                                <label for="numero">Nº:*</label>
                                 <input type="text" class="form-control" id="numero" name="numero" required>
                             </div>
                             <div class="form-group col-md-3" style="float:left;">
@@ -367,11 +367,16 @@
                     data = data;
                 },
                 success: function(data) {
-                    $('#endereco').val(data.logradouro);
-                    $('#bairro').val(data.bairro);
-                    $('#estado').val(data.uf);
-                    $('#cidade').val(data.localidade);
-                    $('#numero').focus();
+                    if (data.uf)
+                        $('#estado').val(data.uf);
+                    if (data.localidade)
+                        $('#cidade').val(data.localidade);
+                    if (data.bairro)
+                        $('#bairro').val(data.bairro);
+                    if (data.logradouro){
+                        $('#endereco').val(data.logradouro);
+                        $('#numero').focus();
+                    }
                 },
                 error: function(jqXHR, textStatus, errorThrown) {
                     console.error('Erro na requisição:', textStatus, errorThrown);
@@ -509,7 +514,14 @@
                     $('#nomeMae').val(data.mae_paciente);
                     $('#dataNascimento').val(data.data_nascimento);
                     $('#cns').val(data.cns);
-                    $('#cpf').val(data.cpf);
+                    $('#cpf').val(data.endereco.cpf);
+                    $('#cep').val(data.endereco.cep);
+                    $('#estado').val(data.endereco.estado);
+                    $('#cidade').val(data.endereco.cidade);
+                    $('#bairro').val(data.endereco.bairro);
+                    $('#endereco').val(data.endereco.endereco);
+                    $('#numero').val(data.endereco.numero);
+                    $('#complemento').val(data.endereco.complemento);
                 },
                 error: function(jqXHR, textStatus, errorThrown) {
                     console.error('Erro na requisição:', textStatus, errorThrown);
