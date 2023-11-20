@@ -202,6 +202,13 @@ class PacientesController extends Controller
                 'cns' => $request->input('cns')
             ]);
 
+            if (empty($paciente->endereco)) {
+                $endereco = new Endereco();
+                $endereco->id_paciente = $paciente->id;
+                $endereco->save();
+                $paciente = Paciente::find($id);
+            }
+
             $paciente->endereco->update([
                 'cep' => str_replace(['.', '-'], '', $request->input('cep')),
                 'estado' => $request->input('estado'),
