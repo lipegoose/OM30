@@ -109,14 +109,13 @@ class PacientesController extends Controller
             $paciente->nome_paciente = $store['nome'];
             $paciente->mae_paciente = $store['nomeMae'];
             $paciente->data_nasc = $store['dataNascimento'];
-            $paciente->cpf = $store['cpf'];
+            $paciente->cpf = str_replace(['.', '-'], '', $store['cpf']);
             $paciente->cns = $store['cns'];
 
             // Verifica se uma imagem foi enviada
             if ($request->hasFile('foto')) {
-                $foto = $request->file('foto');
-                $fotoNome = time() . '_' . $foto->getClientOriginalName(); // Nome único para a imagem
-                $foto->storeAs('imgs/pacientes', $fotoNome, 'public'); // Salva a imagem na pasta
+                $fotoNome = 'paciente_'.$id.".".strtolower($request->file('foto')->getClientOriginalExtension());
+                $request->file('foto')->move(public_path('imgs/pacientes'), $fotoNome);
                 $paciente->foto = $fotoNome; // Salva o nome da imagem no BD
             }
 
@@ -124,7 +123,7 @@ class PacientesController extends Controller
 
             $endereco = new Endereco();
             $endereco->id_paciente = $paciente->id;
-            $endereco->cep = $store['cep'];
+            $endereco->cep = str_replace(['.', '-'], '', $store['cep']);
             $endereco->estado = $store['estado'];
             $endereco->cidade = $store['cidade'];
             $endereco->bairro = $store['bairro'];
@@ -197,12 +196,12 @@ class PacientesController extends Controller
                 'nome_paciente' => $request->input('nome'),
                 'mae_paciente' => $request->input('nomeMae'),
                 'data_nasc' => $request->input('dataNascimento'),
-                'cpf' => $request->input('cpf'),
+                'cpf' => str_replace(['.', '-'], '', $request->input('cpf')),
                 'cns' => $request->input('cns')
             ]);
 
             $paciente->endereco->update([
-                'cep' => $request->input('cep'),
+                'cep' => str_replace(['.', '-'], '', $request->input('cep')),
                 'estado' => $request->input('estado'),
                 'cidade' => $request->input('cidade'),
                 'bairro' => $request->input('bairro'),

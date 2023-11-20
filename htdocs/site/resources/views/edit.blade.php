@@ -108,17 +108,24 @@
 
     @include('elements.loading')
 
-    <!-- Adicionando jQuery, DataTables, Bootstrap JS e SweetAlert2 -->
+    <!-- Adicionando jQuery, DataTables, Bootstrap JS, SweetAlert2 e Mask -->
     <script src="https://code.jquery.com/jquery-3.7.0.js"></script>
     <script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.mask/1.14.16/jquery.mask.min.js"></script>
 
     <script>
         // Inicializando DataTables
         $(document).ready(function () {
             $('[data-toggle="tooltip"]').tooltip();
+
+            // Aplicando máscara de CPF
+            $('#cpf').mask('000.000.000-00', {reverse: true});
+
+            // Aplicando máscara de CEP
+            $('#cep').mask('00000-000');
         });
 
         $('#cep').on('keyup', function(){
