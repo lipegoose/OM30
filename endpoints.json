@@ -1,0 +1,71 @@
+{
+  "resources": [
+    {
+      "_id": "1",
+      "parentId": null,
+      "type": "request",
+      "name": "Importar Pacientes (CSV)",
+      "url": "{{base_url}}/pacientes/importar",
+      "method": "POST",
+      "body": {
+        "mode": "formdata",
+        "formdata": [
+          {
+            "key": "arquivo",
+            "type": "file",
+            "src": "/caminho/para/seu/arquivo.csv"
+          }
+        ]
+      }
+    },
+    {
+      "_id": "2",
+      "parentId": null,
+      "type": "request",
+      "name": "Listar Pacientes",
+      "url": "{{base_url}}/pacientes",
+      "method": "GET"
+    }
+    {
+      "_id": "3",
+      "parentId": null,
+      "type": "request",
+      "name": "Registrar Novo Paciente",
+      "url": "{{base_url}}/pacientes",
+      "method": "POST"
+    }
+    {
+      "_id": "4",
+      "parentId": null,
+      "type": "request",
+      "name": "Atualizar Paciente",
+      "url": "{{base_url}}/pacientes/{{id}}",
+      "method": "PUT"
+    }
+    {
+      "_id": "5",
+      "parentId": null,
+      "type": "request",
+      "name": "Excluir Paciente(s)",
+      "url": "{{base_url}}/pacientes/delete",
+      "method": "DELETE"
+    }
+    {
+      "_id": "6",
+      "parentId": null,
+      "type": "request",
+      "name": "Detalhes do Pacientes",
+      "url": "{{base_url}}/pacientes/{{id}}",
+      "method": "GET"
+    }
+    {
+      "_id": "7",
+      "parentId": null,
+      "type": "request",
+      "name": "Consultar CEP",
+      "url": "{{base_url}}/consulta_cep",
+      "method": "POST"
+    }
+  ],
+  "schema": "insomnia/2020-04-17"
+}
