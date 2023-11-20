@@ -10,6 +10,9 @@
 <p>ou</p>
 <pre><code>$ sudo docker-compose up -d</code></pre>
 <p>Pronto! Tudo será instalado e ao final o Laravel -v 10 com PHP -v 7.4-fpm e com Postgres -v 13 em um Server nginx estará funcionando.</p>
+<p>Antes de acessar, lembre-se de rodar o Comando <code>$ php artisan migrate</code></p>
+<p>Para facilitar este comando pode ser rodado de dentro do Container através do Comando <code>$ sudo docker container exec -it om30-php-fpm-74 /bin/bash</code></p>
+<p>Uma vez que vc está dentro do Container, acesse a pasta site (<code>$ cd site</code>) e então execute as Migrations.</p>
 <p>Para acessar o site em seu navegador, basta digitar (na barra de endereço):</p>
 <pre><code><a target="_blanck" href="http://localhost">http://localhost</a></code></pre>
 <p>e para acessar o seu <i>Banco de Dados</i> com o <b>Adminer</b>, basta digitar (na barra de endereço do seu navegador):</p>
@@ -30,3 +33,4 @@
 <br>
 <h4>Obrigado pela oportunidade!</h4>
 <h3>Mr.Goose</h3>
+ 
