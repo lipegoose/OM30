@@ -70,34 +70,34 @@
             <div class="form-row">
                 <div class="form-group col-md-2" style="float:left;">
                     <label for="cep">CEP:*</label>
-                    <input type="text" class="form-control" id="cep" name="cep" value="{{$paciente->endereco->cep}}" required>
+                    <input type="text" class="form-control" id="cep" name="cep" value="{{$paciente->endereco->cep ?? null}}" required>
                 </div>
                 <div class="form-group col-md-1" style="float:left;">
                     <label for="estado">UF:*</label>
-                    <input type="text" class="form-control" id="estado" name="estado" value="{{$paciente->endereco->estado}}" required>
+                    <input type="text" class="form-control" id="estado" name="estado" value="{{$paciente->endereco->estado ?? null}}" required>
                 </div>
                 <div class="form-group col-md-5" style="float:left;">
                     <label for="cidade">Cidade:*</label>
-                    <input type="text" class="form-control" id="cidade" name="cidade" value="{{$paciente->endereco->cidade}}" required>
+                    <input type="text" class="form-control" id="cidade" name="cidade" value="{{$paciente->endereco->cidade ?? null}}" required>
                 </div>
                 <div class="form-group col-md-4" style="float:left;">
                     <label for="bairro">Bairro:*</label>
-                    <input type="text" class="form-control" id="bairro" name="bairro" value="{{$paciente->endereco->bairro}}" required>
+                    <input type="text" class="form-control" id="bairro" name="bairro" value="{{$paciente->endereco->bairro ?? null}}" required>
                 </div>
             </div>
 
             <div class="form-row">
                 <div class="form-group col-md-7" style="float:left;">
                     <label for="endereco">Endereço:*</label>
-                    <input type="text" class="form-control" id="endereco" name="endereco" value="{{$paciente->endereco->endereco}}" required>
+                    <input type="text" class="form-control" id="endereco" name="endereco" value="{{$paciente->endereco->endereco ?? null}}" required>
                 </div>
                 <div class="form-group col-md-2" style="float:left;">
                     <label for="numero">Nº:*</label>
-                    <input type="text" class="form-control" id="numero" name="numero" value="{{$paciente->endereco->numero}}" required>
+                    <input type="text" class="form-control" id="numero" name="numero" value="{{$paciente->endereco->numero ?? null}}" required>
                 </div>
                 <div class="form-group col-md-3" style="float:left;">
                     <label for="complemento">Complemento:</label>
-                    <input type="text" class="form-control" id="complemento" name="complemento" value="{{$paciente->endereco->complemento}}">
+                    <input type="text" class="form-control" id="complemento" name="complemento" value="{{$paciente->endereco->complemento ?? null}}">
                 </div>
             </div>
 
