@@ -300,4 +300,44 @@ class PacientesController extends Controller
 
         return response()->json($curl_resp_arr);
     }
+
+    public function importar(Request $request)
+    {
+        try {
+            $store = $request->all();
+
+            // # Verifica o tamanho do arquivo baixo de 10 MB
+            if(isset($request->ARQ) && $request->ARQ->getClientSize() <= (10 * (1024 * 1024)) && in_array($request->ARQ->getClientOriginalExtension(), ['csv','xls','xlsx']))
+            {
+                $res['status']   = 'ok';
+                $res['qt_ok']    = 0;
+                $res['qt_erros'] = 0;
+
+                $arq_nome        = time().'.'.$extension;
+                $arq_s_path      = public_path('arqs/pacientes');
+                $arq_s_path_nome = public_path('arqs/pacientes/'.$arq_nome);
+                $request->ARQ->move($arq_s_path, $arq_nome);
+
+                $fgc             = file_get_contents($arq_s_path_nome);
+                if($extension == 'csv'){
+                    $fgc         = @iconv('Windows-1252', 'UTF-8//TRANSLIT//IGNORE', $fgc); // Fix*
+                }
+                file_put_contents($arq_s_path_nome, $fgc);
+
+                $Excel      = new FastExcel;
+
+                if($extension == 'csv') {
+                    $Excel_Col = $Excel->configureCsv($delimiter = ';', $enclosure = '"', $eol = "\n", $encoding = 'UTF-8', $bom = false)->import($arq_s_path_nome);
+                }else {
+                    $Excel_Col = $Excel->import($arq_s_path_nome);
+                }
+
+            }
+
+        } catch (Exception $e) {
+            return response()->json(['flash_error' => 'Erro ao processar a solicitação.']);
+        }
+
+        return response()->json(true);
+    }
 }

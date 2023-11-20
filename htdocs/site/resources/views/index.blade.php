@@ -16,10 +16,31 @@
     <div id="app" class="container mt-5">
         <h1>Lista de Pacientes</h1>
 
-        <!-- Botões -->
-        <div class="mb-3 d-flex justify-content-end">
-            <button type="button" class="btn btn-sm btn-danger btn_excluir_massa"><i class="fa fa-trash"></i> Excluir em Massa</button>
-            <button class="btn btn-success ms-auto btn_new" data-toggle="modal" data-target="#novoPacienteModal">Novo Paciente</button>
+        <div class="card-header pt-0 pb-0">
+            <div class="row">
+                <div class="col-md-6 text-right">
+                    <button id="BT_ARQ_IMPORTAR" type="button" class="btn btn-sm btn-success">
+                        <span class="txt"><i class="fa fa-file-excel-o"></i>&nbsp;&nbsp;Importar Pacientes</span>
+                        <span class="preload">Processando...</span>
+                    </button>
+                    <form id="FORM_ARQ_IMPORTAR" action="#" method="post" enctype="multipart/form-data">
+                        <input type="hidden" name="_token" value="{{ csrf_token() }}" />
+                        <input id="IN_ARQ_IMPORTAR" name="ARQ" type="file" class="display-hidden">
+                    </form>
+                    <p class="font-italic font-small-2 mb-0">arquivo permitido <strong>.CSV</strong>, <strong>.XLS</strong>, <strong>.XLSX</strong>, tamanho máximo <strong>10MB</strong></p>
+                    <p id="MSG_ARQ_IMPORTAR" class="display-hidden danger font-small-3 mb-0"></p>
+                </div>
+
+                <!-- Botões -->
+                <div class="mb-3 d-flex justify-content-end">
+                    <button type="button" class="btn btn-sm btn-danger btn_excluir_massa">
+                        <i class="fa fa-trash"></i> Excluir em Massa
+                    </button>
+                    <button class="btn btn-success ms-auto btn_new" data-toggle="modal" data-target="#novoPacienteModal">
+                        Novo Paciente
+                    </button>
+                </div>
+            </div>
         </div>
 
         <form id="form_excluir_massa">
@@ -194,6 +215,63 @@
 
             // Aplicando máscara de CEP
             $('#cep').mask('00000-000');
+        });
+
+        var BT_ARQ_IMPORTAR = $("#BT_ARQ_IMPORTAR");
+        var IN_ARQ_IMPORTAR = $("#IN_ARQ_IMPORTAR");
+        var MSG_ARQ_IMPORTAR = $("#MSG_ARQ_IMPORTAR");
+
+        BT_ARQ_IMPORTAR.on("click", function () {
+            if (BT_ARQ_IMPORTAR.hasClass('processando')) { return false; }
+            IN_ARQ_IMPORTAR.trigger("click");
+        });
+
+        IN_ARQ_IMPORTAR.on("change", function () {
+            var formData = new FormData();
+            formData.append('ARQ', IN_ARQ_IMPORTAR[0].files[0]);
+
+            $.ajax({
+                url: "{{ URL('pacientes/importar') }}",
+                type: "POST",
+                data: formData,
+                contentType: false,
+                processData: false,
+                beforeSend: function () {
+                    $("#myLoading").modal();
+                },
+            }).done(function (data) {
+                try {
+                    $("#myLoading").modal('toggle');
+                    var _json = $.parseJSON(data);
+                    var message = '';
+
+                    if (_json.status === 'ok') {
+                        message = _json.qt_ok + ' funcionário(s) importado(s) com sucesso.';
+                    } else if (_json.status === 'erro_arq_invalido') {
+                        message = 'arquivo inválido baixe o modelo!';
+                    } else if (_json.status === 'erro_extensao') {
+                        message = 'extensão do arquivo inválido!';
+                    } else {
+                        message = 'ocorreu um erro, tente novamente!';
+                    }
+
+                    MSG_ARQ_IMPORTAR.removeClass('display-hidden').addClass(_json.status === 'ok' ? 'success' : 'danger').html(message);
+
+                    if (_json.status === 'ok' && _json.qt_erros === 0) {
+                        table.draw();
+                    }
+                } catch (e) {
+                    console.error('Erro ao processar resposta: ', e);
+                    MSG_ARQ_IMPORTAR.removeClass('display-hidden').addClass('danger').html('ocorreu um erro, tente novamente, contacte o suporte!');
+                } finally {
+                    BT_ARQ_IMPORTAR.removeClass('processando');
+                    IN_ARQ_IMPORTAR.val('');
+                }
+            }).fail(function () {
+                BT_ARQ_IMPORTAR.removeClass('processando');
+                IN_ARQ_IMPORTAR.val('');
+                console.error('Erro na requisição Ajax.');
+            });
         });
 
         $("#check_todos").on("change", function () {

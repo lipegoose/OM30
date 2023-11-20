@@ -18,6 +18,7 @@ use App\Http\Controllers\PacientesController;
 Route::get('/', function(){return redirect('pacientes');});
 
 Route::get('pacientes/table_data', [PacientesController::class, 'tableData']);
+Route::post('pacientes/importar', [PacientesController::class, 'importar']);
 Route::resource('pacientes', PacientesController::class);
 
 Route::post('consulta_cep', [PacientesController::class, 'consultaCep'])->name('consulta_cep');
