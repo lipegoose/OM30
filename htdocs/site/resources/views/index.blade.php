@@ -19,7 +19,7 @@
         <!-- Botões -->
         <div class="mb-3 d-flex justify-content-end">
             <button type="button" class="btn btn-sm btn-danger btn_excluir_massa"><i class="fa fa-trash"></i> Excluir em Massa</button>
-            <button class="btn btn-success ms-auto" data-toggle="modal" data-target="#novoPacienteModal">Novo Paciente</button>
+            <button class="btn btn-success ms-auto btn_new" data-toggle="modal" data-target="#novoPacienteModal">Novo Paciente</button>
         </div>
 
         <form id="form_excluir_massa">
@@ -46,7 +46,7 @@
         <div class="modal-dialog modal-lg" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="novoPacienteModalLabel">Novo Paciente</h5>
+                    <h5 class="modal-title" id="novoPacienteModalLabel"><span id="acaoModal">Novo</span> Paciente</h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Fechar">
                         <span aria-hidden="true">&times;</span>
                     </button>
@@ -54,6 +54,7 @@
                 <div class="modal-body">
                     <form action="#" method="post" enctype="multipart/form-data" id="formModalPaciente">
                         @csrf
+                        <input type="hidden" name="id_paciente" id="id_paciente">
                         <!-- Foto do Paciente -->
                         <div class="form-group">
                             <label for="foto">Foto do Paciente:</label>
@@ -127,7 +128,7 @@
                             </div>
                         </div>
 
-                        <button type="button" class="btn btn-primary" id="submitModalPaciente">Cadastrar</button>
+                        <button type="button" class="btn btn-primary" id="submitModalPaciente">Salvar</button>
                     </form>                        
                 </div>
             </div>
@@ -146,8 +147,6 @@
     <script>
         // Inicializando DataTables
         $(document).ready(function () {
-            $('[data-toggle="tooltip"]').tooltip();
-
             table = $('#pacientesTable').DataTable({
                 "processing": true,
                 serverSide: true,
@@ -157,6 +156,9 @@
                     type: "GET",
                     data: function(d) {
                         // console.log(d)
+                    },
+                    complete: function(data) {
+                        $('[data-toggle="tooltip"]').tooltip();
                     },
                     error: function (xhr, error, code) {
                         Swal.fire({
@@ -204,7 +206,6 @@
         })
 
         $(".btn_excluir_massa").on("click", function() {
-            let _this = $(this);
             Swal.fire({
                 title: "ATENÇÃO",
                 text: "Tem certeza que quer deletar estes Pacientes em massa? Esta ação não terá volta.",
@@ -321,6 +322,27 @@
                     });
                 }
             });
+        });
+
+        $("#app").on("click", ".btn_new", function() {
+            $('#acaoModal').html('Novo');
+            $('#submitModalPaciente').show();
+            reset_form_add_paciente();
+        });
+
+        $("#pacientesTable").on("click", ".btn_edit", function() {
+            $('#acaoModal').html('Editar');
+            $("#novoPacienteModal").modal();
+            $('#submitModalPaciente').show();
+            populaFormPaciente($(this).attr('id-paciente'));
+            $('#id_paciente').val($(this).attr('id-paciente'));
+        });
+
+        $("#pacientesTable").on("click", ".btn_view", function() {
+            $('#acaoModal').html('Ver');
+            $('#submitModalPaciente').hide();
+            $("#novoPacienteModal").modal();
+            populaFormPaciente($(this).attr('id-paciente'));
         });
 
         $('#cep').on('keyup', function(){
@@ -459,6 +481,7 @@
                 success: function(data) {
                     reset_form_add_paciente();
                     table.draw();
+                    $("#novoPacienteModal").modal('hide');
                 },
                 error: function(data) {
                     console.log(data.responseJSON)
@@ -466,11 +489,31 @@
             });
         });
 
+        function populaFormPaciente(pacienteId){
+            reset_form_add_paciente();
+            $.ajax({
+                url: "{{ route('pacientes.show', ['paciente' => '__pacienteId__']) }}".replace('__pacienteId__', pacienteId),
+                type: 'GET',
+                dataType: 'json',
+                success: function(data) {
+                    $('#nome').val(data.nome_paciente);
+                    $('#nomeMae').val(data.mae_paciente);
+                    $('#dataNascimento').val(data.data_nascimento);
+                    $('#cns').val(data.cns);
+                    $('#cpf').val(data.cpf);
+                    console.log('Dados do paciente:', data);
+                },
+                error: function(jqXHR, textStatus, errorThrown) {
+                    console.error('Erro na requisição:', textStatus, errorThrown);
+                }
+            });
+        }
+
         function reset_form_add_paciente() {
+            $('#id_paciente').val('');
             $('#formModalPaciente').each(function() {
                 this.reset();
             }); // limpa os inputs
-            $("#novoPacienteModal").modal('hide');
         }
     </script>
 

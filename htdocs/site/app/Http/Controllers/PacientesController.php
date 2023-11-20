@@ -44,11 +44,14 @@ class PacientesController extends Controller
 
             if (!empty($linhas)) {
                 foreach ($linhas as $linha) {
-  
-                    $buttons = "<a href='/funcionarios/$linha->id/edit' title='Editar' class='btn btn-sm btn-icon btn-primary'>
-                                <i class='fa fa-edit'></i>
-                            </a>" .
-                            "<button type='button' title='Deletar' class='btn btn-sm btn-icon btn-danger btn_destroy' id-paciente='$linha->id'>
+                    $buttons = 
+                            "<button type='button' data-toggle='tooltip' title='Visualizar' class='btn btn-sm btn-icon btn-primary btn_view' id-paciente='$linha->id'>
+                                        <i class='fa fa-eye'></i>
+                                    </button>" .
+                            "<button type='button' data-toggle='tooltip' title='Editar' class='btn btn-sm btn-icon btn-warning btn_edit' id-paciente='$linha->id'>
+                                        <i class='fa fa-edit'></i>
+                                    </button>" .
+                            "<button type='button' data-toggle='tooltip' title='Deletar' class='btn btn-sm btn-icon btn-danger btn_destroy' id-paciente='$linha->id'>
                                         <i class='fa fa-trash'></i>
                                     </button>";
 
@@ -116,6 +119,18 @@ class PacientesController extends Controller
     }
 
     /**
+     * Display the specified resource.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function show($id)
+    {
+        $paciente = Paciente::getById($id);
+        return response()->json($paciente);
+    }
+
+    /**
      * Update the specified resource in storage.
      *
      * @param  \Illuminate\Http\Request  $request
@@ -140,13 +155,16 @@ class PacientesController extends Controller
 
             if (isset($store['check_rep']) && is_array($store['check_rep']) && count($store['check_rep']) > 0)
             foreach($store['check_rep'] AS $id){
-                DB::beginTransaction();
+                if (!empty($id)) {
+                    DB::beginTransaction();
 
-                $paciente               = Paciente::find($id);
-                $paciente->deleted_at   = date('Y-m-d H:i:s');
-                $paciente->save();
+                    $paciente               = Paciente::find($id);
 
-                DB::commit();
+                    $paciente->deleted_at   = date('Y-m-d H:i:s');
+                    $paciente->save();
+
+                    DB::commit();
+                }
             } // close foreach($store['check_rep'] AS $id)
 
         } catch (Exception $e) {

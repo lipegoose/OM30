@@ -10,6 +10,8 @@ use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
+use DB;
+
 /**
  * Class Paciente
  * 
@@ -65,14 +67,20 @@ class Paciente extends Model
 
         if(!empty( $search )){
             $searchableColumns = self::$searchableColumns;
-            $list->where(function ($list) use ($searchableColumns, $search) {
+            $list->where(function ($query) use ($searchableColumns, $search) {
                 foreach($searchableColumns as $key => $column)
-                    $list->orWhere($column, 'ILIKE', '%' . $search . '%');
+                    $query->orWhere($column, 'ILIKE', '%' . $search . '%');
             });
         }
         
         $list->orderBy( self::$orderableColumns[ $order[0]['column'] ] , $order[0]['dir']);
         
         return $list->paginate($limit, ['*'], 'page', $page);
+    }
+
+    public static function getById($id)
+    {
+    	$teste = Paciente::select('id', 'nome_paciente', 'mae_paciente', 'data_nasc', 'cpf', 'cns', 'foto',  DB::raw("TO_CHAR(data_nasc, 'YYYY-MM-DD') AS data_nascimento"))->where('id', $id)->first();
+    	return $teste;
     }
 }
