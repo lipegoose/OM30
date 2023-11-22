@@ -2,8 +2,13 @@ FROM php:7.4-fpm
 
 LABEL maintainer="MrGoose"
 
+# Instalando dependências necessárias
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
+        ca-certificates \
+        curl \
+        gnupg \
+        sudo \
         nano \
         libc-client-dev \
         libonig-dev \
@@ -19,6 +24,7 @@ RUN apt-get update \
         libkrb5-dev \
         libpq-dev \
         postgresql-client \
+        git \
     && docker-php-ext-configure imap --with-kerberos --with-imap-ssl \
     && docker-php-ext-install pdo pdo_mysql gd imap mbstring soap mysqli bcmath exif intl xmlrpc zip \
     && docker-php-ext-enable sodium \
@@ -34,12 +40,23 @@ ENV COMPOSER_HOME /composer
 ENV PATH /composer/vendor/bin:$PATH
 ENV COMPOSER_ALLOW_SUPERUSER 1
 
-RUN curl -s https://getcomposer.org/installer | php \
-    && mv composer.phar /usr/local/bin/composer \
-    && chmod +x /usr/local/bin/composer
+# ...
 
-RUN curl -s https://deb.nodesource.com/setup_16.x | bash \
+# Download e importação da chave GPG do Nodesource
+RUN curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /usr/share/keyrings/nodesource-archive-keyring.gpg
+
+# Configuração do repositório DEB
+ARG NODE_MAJOR=21
+RUN echo "deb [signed-by=/usr/share/keyrings/nodesource-archive-keyring.gpg] https://deb.nodesource.com/node_${NODE_MAJOR}.x nodistro main" > /etc/apt/sources.list.d/nodesource.list
+
+# Atualiza e instala o Node.js
+RUN apt-get update \
     && apt-get install -y nodejs
+
+# ...
+
+RUN curl -s https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer \
+    && chmod +x /usr/local/bin/composer
 
 RUN composer global require phpunit/phpunit
 
@@ -52,10 +69,18 @@ RUN apt-get install -y python3-pip \
 COPY libunrar.so /usr/lib/
 COPY libunrar.a /usr/lib/
 
-RUN echo 'export UNRAR_LIB_PATH=/usr/lib/libunrar.so' >> ~/.bashrc \
-    && ldconfig
+ENV UNRAR_LIB_PATH /usr/lib/libunrar.so
+RUN ldconfig
 
-RUN docker-php-ext-install pdo_pgsql pgsql
+RUN docker-php-ext-install pdo_pgsql pgsql pcntl
+
+# Instalar a extensão Redis
+RUN apt-get install -y libhiredis-dev \
+    && git clone -b 5.3.4 --depth 1 https://github.com/phpredis/phpredis.git /usr/src/php/ext/redis \
+    && docker-php-ext-install redis
+
+# Instalação do cliente Redis
+RUN apt-get update && apt-get install -y redis-tools
 
 EXPOSE 9000
 

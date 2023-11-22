@@ -27,6 +27,7 @@
 <p>Agora, acesse o site novamente e teste avontade a Aplicação simples (sem Front-End elaborado) que criei.</p>
 <p>Pronto! Vc já pode <i>Testar! <b>;-)</b></i></p>
 <h5>e boa diversão. =)</h5>
+<p>Para acessar o horizon, de dentro do Container execute o comando <code>$ php artisan horizon</code> e no navegador acesse: http://localhost/horizon</p>
 <p>Se tiver qualquer dúvida, entre em contato.</p>
 <p><b><i>#VamoJunto!</i></b></p>
 <br>
